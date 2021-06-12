@@ -1,0 +1,53 @@
+html {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+    Arial, sans-serif;
+}
+
+.main {
+  background-color: RGBA(5, 8, 5, 0.4);
+  padding: 1em;
+  max-width: 20em;
+  border-radius: 10px;
+  position: fixed;
+  top: 35%;
+  left: 25%;
+  padding-right: 3em;
+}
+
+button,
+.btn {
+  background-color: green;
+  color: white;
+  font-size: 15px;
+  padding: 6px;
+}
+
+button:focus,
+.btn:focus {
+  color: white;
+  background-color: darkred;
+}
+
+button,
+.btn,
+input {
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  border-radius: 5px;
+  outline: 0;
+  border: 0;
+  transition: box-shadow 0.2s, background-color 0.2s;
+}
+
+button:hover,
+.btn:hover,
+input:hover {
+  box-shadow: 0 11px 12px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
+}
+
+br {
+  user-select: none;
+}
+
+input {
+  padding: 0.7em;
+}
