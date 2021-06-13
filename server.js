@@ -8,6 +8,7 @@ const sanitizeMiddleware = require("sanitize-middleware");
 const shortid = require("shortid");
 const cors = require("cors");
 const xss = require("xss");
+const { RateLimiterMemory } = require('rate-limiter-flexible');
 
 const http = require("http");
 const server = http.createServer(app);
@@ -25,8 +26,16 @@ app.use(
   })
 );
 
+const rateLimiter = new RateLimiterMemory(
+  {
+    points: 5, // 5 points
+    duration: 3, // per second
+  });
+
+var chname = "Chatbot";
 var users = [];
 var usersTyping = [];
+
 app.use(function(req, res, next, socket) {
   users = users.filter(u => u != getUsername(socket));
   usersTyping = usersTyping.filter(u => u != getUsername(socket));
@@ -72,12 +81,8 @@ app.post("/login", (req, res) => {
     res.cookie("username", "Anoumous_" + shortid.generate());
     res.redirect("/chat");
   } else {
-    if (count(users, req.body.username) > 0) {
-      res.redirect(401, "/");
-    } else {
       res.cookie("username", req.body.username);
       res.redirect("/chat");
-    }
   }
 });
 
@@ -88,6 +93,11 @@ app.get("/docs/api", (req, res) => {
 // Socket code
 
 io.on("connection", socket => {
+  if (users.includes(getUsername(socket))){
+    socket.emit("chat message", chname, 'Username alredy in use!<br /><a href="../">Choose an another username</a>');
+    socket.disconnect(true);
+    return;
+  }
   users.push(getUsername(socket));
   io.emit("user connect", getUsername(socket));
   io.emit("typing on", usersTyping);
@@ -99,25 +109,39 @@ io.on("connection", socket => {
 });
 
 io.on("connection", socket => {
-  socket.on("chat message", msg => {
-    io.emit("chat message", getUsername(socket), xss(msg));
-    var chname = "Chatbot";
-    if (msg == "/users") {
-      io.emit("chat message", chname, xss(users));
-    } else if (msg == "/help") {
-      io.emit(
-        "chat message",
-        chname,
-        "Chatrim - The next-gen chat system<br />Commands: /help, /users, /sus"
-      );
-    } else if (msg == "/sus") {
-      io.emit("chat message", chname, "You sus too, " + getUsername(socket));
-    }
+  socket.on("chat message", async function(msg){
+      var userip = socket.handshake.headers["X-Forwarded-For"];
+      //Also, repl.it gives fake IPs, not the real ones
+      if (typeof msg !== "string"){
+        socket.emit("chat message", chname, "Your message looks kinda sus.");
+        return;
+      }
+      try {
+        await rateLimiter.consume(userip);
+      } catch {
+        socket.emit("chat message", chname, "You are now rate-limited!");
+        return;
+      }
+      io.emit("chat message", getUsername(socket), xss(msg));
+      if (msg == "/users") {
+        io.emit("chat message", chname, xss(users));
+      } else if (msg == "/help") {
+        io.emit(
+          "chat message",
+          chname,
+          "Chatrim - The next-gen chat system<br />Commands: /help, /users, /sus"
+        );
+      } else if (msg == "/sus") {
+        io.emit("chat message", chname, "You sus too, " + getUsername(socket));
+      }
   });
 });
 
 io.on("connection", socket => {
   socket.on("user typing", user => {
+    if (user !== getUsername(socket)){
+      return;
+    }
     usersTyping = usersTyping.filter(u => u != user);
     usersTyping.push(user);
     io.emit("typing on", usersTyping);
@@ -126,6 +150,9 @@ io.on("connection", socket => {
 
 io.on("connection", socket => {
   socket.on("typing off", user => {
+    if (user !== getUsername(socket)){
+      return;
+    }
     usersTyping = usersTyping.filter(function(value, index, arr) {
       return value != user;
     });
@@ -133,8 +160,10 @@ io.on("connection", socket => {
   });
 });
 
-app.get("/debug", (req, res) => {
-  res.send("users: " + users + "<br />usersTyping: " + usersTyping);
+// API code
+app.post("/api/send", (req, res) => {
+  io.emit("chat message", req.body.username, req.body.message);
+  res.send(200, "OK");
 });
 
 server.listen(port, () => {
