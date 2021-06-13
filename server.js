@@ -6,8 +6,8 @@ const bodyParser = require("body-parser");
 const app = express();
 const sanitizeMiddleware = require("sanitize-middleware");
 const shortid = require("shortid");
+const cors = require("cors");
 const xss = require("xss");
-xss.whitelist = { img: ["src"] };
 
 const http = require("http");
 const server = http.createServer(app);
@@ -18,6 +18,7 @@ const port = process.env.PORT || 3000;
 app.set("view engine", "ejs");
 app.use(expressLayouts);
 app.use(cookieParser());
+app.use(cors());
 app.use(
   bodyParser.urlencoded({
     extended: true
@@ -65,13 +66,13 @@ app.get("/chat", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  req.body.username = xss(req.body.username);
+  req.body.username = req.body.username;
   const count = (arr, val) => arr.reduce((a, v) => (v === val ? a + 1 : a), 0);
   if (!req.body.username) {
     res.cookie("username", "Anoumous_" + shortid.generate());
     res.redirect("/chat");
   } else {
-    if (count(users, req.body.username) > 1) {
+    if (count(users, req.body.username) > 0) {
       res.redirect(401, "/");
     } else {
       res.cookie("username", req.body.username);
