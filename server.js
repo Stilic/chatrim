@@ -133,12 +133,6 @@ io.on("connection", socket => {
   });
 });
 
-// API code
-app.post("/api/send", (req, res) => {
-  io.emit("chat message", req.body.username, req.body.message);
-  res.send(200, "OK");
-});
-
 app.get("/debug", (req, res) => {
   res.send("users: " + users + "<br />usersTyping: " + usersTyping);
 });

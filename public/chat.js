@@ -35,16 +35,16 @@ form.addEventListener("submit", function(e) {
 
 socket.on("chat message", function(user, msg) {
   addMessage("<strong>" + user + "</strong>:<br />" + msg);
-  ++newmsg;
   if (document.hidden) {
+    ++newmsg;
     document.title = "[" + newmsg + "] " + oldtitle;
   }
 });
 
 document.addEventListener("visibilitychange", event => {
   if (!document.hidden) {
-    document.title = oldtitle;
     newmsg = 0;
+    document.title = oldtitle;
   }
 });
 

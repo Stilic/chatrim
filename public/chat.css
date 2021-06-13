@@ -7,14 +7,7 @@ body {
     Arial, sans-serif;
   background-color: #333;
   background-image: none;
-}
-
-#bottombox {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background-color: white;
+  overflow-x: hidden;
 }
 
 #form {
@@ -22,6 +15,11 @@ body {
   display: flex;
   min-height: 3rem;
   box-sizing: border-box;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: white;
 }
 
 #input {
@@ -49,6 +47,19 @@ body {
 }
 
 #typing {
-  margin-left: 1em;
-  font-size: 12px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: darkred;
+  color: white;
+  text-align: center;
+}
+
+#typing:hover {
+  opacity: 40%;
+}
+
+img {
+  width: 40%;
 }
