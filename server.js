@@ -8,6 +8,7 @@ const sanitizeMiddleware = require("sanitize-middleware");
 const shortid = require("shortid");
 const cors = require("cors");
 const xss = require("xss");
+const marked = require("marked");
 const { RateLimiterMemory } = require('rate-limiter-flexible');
 
 const http = require("http");
@@ -122,7 +123,7 @@ io.on("connection", socket => {
         socket.emit("chat message", chname, "You are now rate-limited!");
         return;
       }
-      io.emit("chat message", getUsername(socket), xss(msg));
+      io.emit("chat message", getUsername(socket), marked(xss(msg));
       if (msg == "/users") {
         io.emit("chat message", chname, xss(users));
       } else if (msg == "/help") {
